@@ -53,7 +53,7 @@ send_user "\[+]\ Creating an empty pcap file at $file_path\n"
 exec touch $file_path
 
 send_user "\[+]\ Starting packet capture... Saving to $file_path\n"
-spawn sudo tcpdump -i en0 -w $file_path
+spawn sudo tcpdump -i en0 -s 0 -w $file_path
 send_user "\[+]\ Packet capture is now running in the background...\n"
 send_user "\[+]\ Starting file transfer...\n"
 
