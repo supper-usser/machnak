@@ -42,22 +42,37 @@ set password [get_input "\[+]\ Enter password for the foreign host: "]
 stty echo
 send_user "\n"  ; # Move to a new line after input
 
+# Get the interface from the user
+if {[catch {
+    set interface [get_input "\[?]\ Listening from standard interface en0, to change provide interface name (leave blank to skip): "]
+    if {$interface eq ""} {
+        set interface "en0"
+    } else {
+        send_user "\[+]\ Using provided interface: $interface\n"
+    }
+    send_user "\[+]\ Listening on interface: $interface\n"
+} errorMsg]} {
+    send_user "\[-]\ Error: $errorMsg\n"
+    exit 1
+}
+
 # Validate password input
 if {$password eq ""} {
     send_user "\[-]\ Error: Password not provided!\n"
     exit 1
 }
 
-# Step 1: Create an empty .pcap file in the user's home directory
+# Create an empty .pcap file in the user's home directory
 send_user "\[+]\ Creating an empty pcap file at $file_path\n"
 exec touch $file_path
 
-send_user "\[+]\ Starting packet capture... Saving to $file_path\n"
-spawn sudo tcpdump -i en0 -s 0 -w $file_path
+send_user "\[+]\ Starting packet capture on interface $interface... Saving to $file_path\n"
+spawn sudo tcpdump -i $interface -s 0 -w $file_path
+sleep 2
 send_user "\[+]\ Packet capture is now running in the background...\n"
-send_user "\[+]\ Starting file transfer...\n"
 
-# Step 3: SCP file transfer loop every 5 seconds
+
+# SCP file transfer loop every 5 seconds
 while {1} {
     send_user "\[+]\ Attempting packets transfer...\n"
     spawn scp $file_path $username@$ip:/home/$username/Desktop
